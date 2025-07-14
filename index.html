@@ -1,97 +1,111 @@
-!DOCTYPE html
-html lang=ko
-head
-  meta charset=UTF-8
-  meta name=viewport content=width=device-width, initial-scale=1.0
-  title복지 서비스 추천title
-  style
-    body { font-family Arial, sans-serif; background-color #f5f5f5; margin 0; padding 20px; }
-    .container { max-width 600px; margin 0 auto; background #fff; padding 20px; border-radius 8px; box-shadow 0 2px 4px rgba(0,0,0,0.1); }
-    h1 { text-align center; }
-    form { display grid; gap 12px; }
-    label { display flex; justify-content space-between; align-items center; }
-    input, select { padding 6px; width 60%; border 1px solid #ccc; border-radius 4px; }
-    button { padding 10px; background-color #007bff; color #fff; border none; border-radius 4px; cursor pointer; }
-    buttonhover { background-color #0056b3; }
-    .card { background #fafafa; border 1px solid #ddd; border-radius 6px; padding 12px; margin-top 12px; }
-    .card h3 { margin 0 0 6px; }
-    .card p { margin 0; }
-  style
-head
-body
-  div class=container
-    h1내가 신청 가능한 복지 서비스h1
-    form id=eligibilityForm
-      label나이 input type=number id=age value=30 min=0 label
-      label월 소득 (만원) input type=number id=income value=200 min=0 label
-      label가구원 수 input type=number id=householdSize value=3 min=1 label
-      label장애 여부
-        select id=disability
-          option value=false없음option
-          option value=true있음option
-        select
-      label
-      button type=button id=searchBtn검색button
-    form
-    div id=resultsdiv
-  div
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>복지 서비스 추천 💖</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { text-align: center; margin-bottom: 20px; }
+    form { display: grid; gap: 12px; }
+    .form-group { display: flex; align-items: center; gap: 8px; }
+    .form-group span.label-text { width: 120px; display: inline-block; }
+    input, select { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 10px; background-color: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .card { background: #fafafa; border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-top: 12px; cursor: pointer; }
+    .card h3 { margin: 0 0 6px; }
+    .card p { margin: 0; }
+    .details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ccc; }
+    .details ul { padding-left: 20px; margin: 0; }
+    .close-btn { margin-top: 10px; padding: 4px 8px; background: #e74c3c; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .close-btn:hover { background: #c0392b; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛡️ 내가 신청 가능한 복지 서비스 💖</h1>
+    <form id="eligibilityForm">
+      <div class="form-group">
+        <span class="label-text">🌟 나이:</span>
+        <input type="number" id="age" value="30" min="0" />
+        <span>세</span>
+      </div>
+      <div class="form-group">
+        <span class="label-text">💰 월 소득:</span>
+        <input type="number" id="income" value="200" min="0" />
+        <span>만원</span>
+      </div>
+      <div class="form-group">
+        <span class="label-text">👪 가구원 수:</span>
+        <input type="number" id="householdSize" value="3" min="1" />
+      </div>
+      <div class="form-group">
+        <span class="label-text">♿ 장애 여부:</span>
+        <select id="disability">
+          <option value="false">없음</option>
+          <option value="true">있음</option>
+        </select>
+      </div>
+      <button type="button" id="searchBtn">🔍 검색</button>
+    </form>
+    <div id="results"></div>
+  </div>
 
-  script
-     샘플 복지 서비스 데이터 (가짜 데이터)
+  <script>
+    // 샘플 복지 서비스 데이터 (가짜 상세 정보)
     const services = [
-      {
-        id 1,
-        name '청년 맞춤형 전·월세 보증금 대출 지원',
-        description '만 19~34세 청년층을 대상으로 전·월세 보증금 대출 이자를 지원합니다.',
-        criteria { minAge 19, maxAge 34, maxIncome 400, requiresDisability false }
-      },
-      {
-        id 2,
-        name '장애인 연금',
-        description '장애 등급 1~3등급 장애인을 위한 월 20만원 연금을 지원합니다.',
-        criteria { minAge 18, maxAge 100, maxIncome 500, requiresDisability true }
-      },
-      {
-        id 3,
-        name '한부모 가족 자녀 양육비 지원',
-        description '한부모 가구의 자녀 1인당 월 10만원의 양육비를 지원합니다.',
-        criteria { minAge 18, maxAge 100, maxIncome 350, requiresSingleParent true }
-      },
-      {
-        id 4,
-        name '노인 기초연금',
-        description '만 65세 이상 저소득층 어르신에게 월 25만원 기초연금을 지원합니다.',
-        criteria { minAge 65, maxAge 100, maxIncome 300, requiresDisability false }
-      }
+      { id: 1, name: '🏠 청년 맞춤형 전·월세 보증금 대출 지원', description: '만 19~34세 청년층 대상 전·월세 보증금 대출 이자를 지원합니다.', details: { eligibility: ['나이: 19~34세','소득: 연 4,800만원 이하'], benefit: '대출 이자 연 최대 3% 지원', howToApply: '주민센터 방문 또는 온라인 신청', contact: '국토교통부 콜센터 1588-0000' }, criteria: { minAge: 19, maxAge: 34, maxIncome: 400 } },
+      { id: 2, name: '🧑‍🦽 장애인 연금', description: '장애 등급 1~3등급 대상 월 20만원 연금 지원', details: { eligibility: ['장애 등급: 1~3등급','소득: 연 5,000만원 이하'], benefit: '월 20만원 정액 지급', howToApply: '복지로 홈페이지 신청', contact: '보건복지부 129' }, criteria: { minAge: 18, maxAge: 100, maxIncome: 500, requiresDisability: true } },
+      { id: 3, name: '👩‍👧‍👦 한부모 가족 자녀 양육비 지원', description: '한부모 가구 자녀 1인당 월 10만원 지원', details: { eligibility: ['한부모 가구','소득: 연 4,200만원 이하'], benefit: '자녀당 월 10만원 지급', howToApply: '읍면동 주민센터 신청', contact: '여성가족부 1366' }, criteria: { minAge: 18, maxAge: 100, maxIncome: 420, requiresSingleParent: true } },
+      { id: 4, name: '👵 노인 기초연금', description: '만 65세 이상 저소득층 어르신 월 25만원 지원', details: { eligibility: ['나이: 65세 이상','소득: 연 3,600만원 이하'], benefit: '월 25만원 지급', howToApply: '복지로 또는 주민센터', contact: '보건복지부 129' }, criteria: { minAge: 65, maxAge: 100, maxIncome: 360 } },
+      { id: 5, name: '🔌 기초생활수급자 전기요금 할인', description: '기초생활수급 가구 전기요금 최대 60% 할인', details: { eligibility: ['기초생활수급자'], benefit: '전기요금 최대 60% 할인', howToApply: '전력회사 방문 신청', contact: '한국전력공사 123-4567' }, criteria: { requiresRecipient: true } },
+      { id: 6, name: '🤱 출산장려금 지원', description: '첫째 50만원, 둘째 이상 100만원 지원', details: { eligibility: ['출산 여성','나이: 20~44세'], benefit: '첫째 50만원, 둘째 이상 100만원', howToApply: '읍면동 주민센터', contact: '보건복지부 129' }, criteria: { minAge: 20, maxAge: 44, requiresChildbirth: true } },
+      { id: 7, name: '🧸 장애아동 돌봄 서비스', description: '장애아동 가정 주당 10시간 돌봄 제공', details: { eligibility: ['장애아동 보유 가정'], benefit: '주당 10시간 돌봄', howToApply: '복지로 신청', contact: '보건복지부 129' }, criteria: { requiresDisability: true, requiresChild: true } },
+      { id: 8, name: '🇰🇷 국가유공자 복지 지원', description: '국가유공자 및 유가족 의료·주거 지원', details: { eligibility: ['국가유공자 또는 유가족'], benefit: '의료비·주거비 지원', howToApply: '보훈처 방문', contact: '보훈처 1577-0606' }, criteria: { requiresVeteran: true } },
+      { id: 9, name: '🏥 저소득층 한시생활지원금', description: '저소득 가구 대상 한시 생활지원금 지급', details: { eligibility: ['소득: 연 2,400만원 이하'], benefit: '가구당 50만원 지급', howToApply: '복지로 또는 주민센터', contact: '보건복지부 129' }, criteria: { maxIncome: 240 } },
+      { id:10, name: '🚨 긴급복지지원', description: '위기 가구 대상 단기 생계·의료비 지원', details: { eligibility: ['위기 가구'], benefit: '최대 200만원 지원', howToApply: '읍면동 주민센터', contact: '보건복지부 129' }, criteria: {} },
+      { id:11, name: '🏠 주거급여', description: '저소득층 대상 월 주거 비용 지원', details: { eligibility: ['소득: 연 2,800만원 이하'], benefit: '월 최대 20만원 지원', howToApply: '복지로 신청', contact: '국토교통부 1588-0000' }, criteria: { maxIncome: 280 } },
+      { id:12, name: '👶 아이돌보미 서비스', description: '맞벌이 가정 대상 시간제 돌봄 서비스', details: { eligibility: ['맞벌이 가정','자녀 0~12세'], benefit: '시간당 1만원 지원', howToApply: '복지로 신청', contact: '여성가족부 1366' }, criteria: { requiresChild: true } }
     ];
 
-    document.getElementById('searchBtn').addEventListener('click', () = {
-      const age = parseInt(document.getElementById('age').value, 10);
-      const income = parseInt(document.getElementById('income').value, 10);
-      const householdSize = parseInt(document.getElementById('householdSize').value, 10);
-      const disability = document.getElementById('disability').value === 'true';
-
-      const matched = services.filter(s = {
-        if (age  s.criteria.minAge  age  s.criteria.maxAge) return false;
-        if (income  s.criteria.maxIncome) return false;
-        if (s.criteria.requiresDisability && !disability) return false;
-        if (s.criteria.requiresSingleParent && householdSize  2) return false;  간단한 예시
-        return true;
-      });
-
+    function renderServices(list) {
       const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '';
-      if (matched.length === 0) {
-        resultsDiv.innerHTML = 'p신청 가능한 복지 서비스가 없습니다.p';
-      } else {
-        matched.forEach(s = {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `h3${s.name}h3p${s.description}p`;
-          resultsDiv.appendChild(card);
-        });
-      }
+      if (!list.length) { resultsDiv.innerHTML = '<p>❌ 신청 가능한 복지 서비스가 없습니다.</p>'; return; }
+      list.forEach(s => {
+        const card = document.createElement('div'); card.className = 'card';
+        card.innerHTML = `<h3>✅ ${s.name}</h3><p>${s.description}</p>`;
+        const detailsDiv = document.createElement('div'); detailsDiv.className = 'details';
+        const liItems = s.details.eligibility.map(item=>`<li>${item}</li>`).join('');
+        detailsDiv.innerHTML = `<strong>📋 상세 정보</strong><ul>${liItems}</ul><p><strong>혜택:</strong> ${s.details.benefit}</p><p><strong>신청 방법:</strong> ${s.details.howToApply}</p><p><strong>문의:</strong> ${s.details.contact}</p><button class="close-btn">닫기</button>`;
+        card.addEventListener('click', e=>{ if(!e.target.classList.contains('close-btn')) detailsDiv.style.display = detailsDiv.style.display==='block'?'none':'block'; });
+        detailsDiv.querySelector('.close-btn').addEventListener('click', e=>{ e.stopPropagation(); detailsDiv.style.display='none'; });
+        card.appendChild(detailsDiv); resultsDiv.appendChild(card);
+      });
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', ()=>{
+      const age=parseInt(document.getElementById('age').value,10);
+      const income=parseInt(document.getElementById('income').value,10);
+      const householdSize=parseInt(document.getElementById('householdSize').value,10);
+      const disability=document.getElementById('disability').value==='true';
+      const isRecipient=income<=200; const hasChild=householdSize>1; const isVeteran=false; const hasChildbirth=true;
+      const matched=services.filter(s=>{
+        if(s.criteria.minAge&&(age<s.criteria.minAge||age>(s.criteria.maxAge||age)))return false;
+        if(s.criteria.maxIncome&&income>s.criteria.maxIncome)return false;
+        if(s.criteria.requiresDisability&&!disability)return false;
+        if(s.criteria.requiresSingleParent&&householdSize<2)return false;
+        if(s.criteria.requiresRecipient&&!isRecipient)return false;
+        if(s.criteria.requiresChild&&!hasChild)return false;
+        if(s.criteria.requiresVeteran&&!isVeteran)return false;
+        if(s.criteria.requiresChildbirth&&!hasChildbirth)return false;
+        return true;
+      }); renderServices(matched);
     });
-  script
-body
-html
+
+    renderServices(services);
+  </script>
+</body>
+</html>
