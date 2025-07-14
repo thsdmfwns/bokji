@@ -1,0 +1,97 @@
+!DOCTYPE html
+html lang=ko
+head
+  meta charset=UTF-8
+  meta name=viewport content=width=device-width, initial-scale=1.0
+  title복지 서비스 추천title
+  style
+    body { font-family Arial, sans-serif; background-color #f5f5f5; margin 0; padding 20px; }
+    .container { max-width 600px; margin 0 auto; background #fff; padding 20px; border-radius 8px; box-shadow 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { text-align center; }
+    form { display grid; gap 12px; }
+    label { display flex; justify-content space-between; align-items center; }
+    input, select { padding 6px; width 60%; border 1px solid #ccc; border-radius 4px; }
+    button { padding 10px; background-color #007bff; color #fff; border none; border-radius 4px; cursor pointer; }
+    buttonhover { background-color #0056b3; }
+    .card { background #fafafa; border 1px solid #ddd; border-radius 6px; padding 12px; margin-top 12px; }
+    .card h3 { margin 0 0 6px; }
+    .card p { margin 0; }
+  style
+head
+body
+  div class=container
+    h1내가 신청 가능한 복지 서비스h1
+    form id=eligibilityForm
+      label나이 input type=number id=age value=30 min=0 label
+      label월 소득 (만원) input type=number id=income value=200 min=0 label
+      label가구원 수 input type=number id=householdSize value=3 min=1 label
+      label장애 여부
+        select id=disability
+          option value=false없음option
+          option value=true있음option
+        select
+      label
+      button type=button id=searchBtn검색button
+    form
+    div id=resultsdiv
+  div
+
+  script
+     샘플 복지 서비스 데이터 (가짜 데이터)
+    const services = [
+      {
+        id 1,
+        name '청년 맞춤형 전·월세 보증금 대출 지원',
+        description '만 19~34세 청년층을 대상으로 전·월세 보증금 대출 이자를 지원합니다.',
+        criteria { minAge 19, maxAge 34, maxIncome 400, requiresDisability false }
+      },
+      {
+        id 2,
+        name '장애인 연금',
+        description '장애 등급 1~3등급 장애인을 위한 월 20만원 연금을 지원합니다.',
+        criteria { minAge 18, maxAge 100, maxIncome 500, requiresDisability true }
+      },
+      {
+        id 3,
+        name '한부모 가족 자녀 양육비 지원',
+        description '한부모 가구의 자녀 1인당 월 10만원의 양육비를 지원합니다.',
+        criteria { minAge 18, maxAge 100, maxIncome 350, requiresSingleParent true }
+      },
+      {
+        id 4,
+        name '노인 기초연금',
+        description '만 65세 이상 저소득층 어르신에게 월 25만원 기초연금을 지원합니다.',
+        criteria { minAge 65, maxAge 100, maxIncome 300, requiresDisability false }
+      }
+    ];
+
+    document.getElementById('searchBtn').addEventListener('click', () = {
+      const age = parseInt(document.getElementById('age').value, 10);
+      const income = parseInt(document.getElementById('income').value, 10);
+      const householdSize = parseInt(document.getElementById('householdSize').value, 10);
+      const disability = document.getElementById('disability').value === 'true';
+
+      const matched = services.filter(s = {
+        if (age  s.criteria.minAge  age  s.criteria.maxAge) return false;
+        if (income  s.criteria.maxIncome) return false;
+        if (s.criteria.requiresDisability && !disability) return false;
+        if (s.criteria.requiresSingleParent && householdSize  2) return false;  간단한 예시
+        return true;
+      });
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+      if (matched.length === 0) {
+        resultsDiv.innerHTML = 'p신청 가능한 복지 서비스가 없습니다.p';
+      } else {
+        matched.forEach(s = {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `h3${s.name}h3p${s.description}p`;
+          resultsDiv.appendChild(card);
+        });
+      }
+    });
+  script
+body
+html
